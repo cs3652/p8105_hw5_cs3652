@@ -15,25 +15,16 @@ library(rvest)
 
 set.seed(1)
 ```
+```{r}
+temp = list.files(pattern = "*.csv")
+myfiles = lapply(temp, read.delim)
+
+dplyr::bind_rows(myfiles)
+```
 
 ```{r}
-study_load_and_tidy = function(path, range, arm, subject_id) {
-  
-  df = readxl::read_excel(path, range = range) %>%
-    janitor::clean_names() %>%
-    gather(key = sex, value = words, female:male) %>%
-    mutate(race = tolower(race),
-           movie = movie_name)
-  
-  df
-  
-}
-
-lotr_tidy = 
-  bind_rows(
-    lotr_load_and_tidy("./data/LotR_Words.xlsx", "B3:D6", "fellowship_ring"),
-    lotr_load_and_tidy("./data/LotR_Words.xlsx", "F3:H6", "two_towers"),
-    lotr_load_and_tidy("./data/LotR_Words.xlsx", "J3:L6", "return_king")) %>%
-  select(movie, everything()) 
+study_data = myfiles %>%
+  study_data$arm <- 
 ```
+
 
