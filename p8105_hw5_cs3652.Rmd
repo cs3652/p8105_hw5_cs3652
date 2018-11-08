@@ -9,7 +9,7 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r, message = FALSE}
 library(tidyverse)
 library(rvest)
 library(purrr)
@@ -19,7 +19,7 @@ set.seed(1)
 
 ##Problem 1
 
-```{r}
+```{r, message = FALSE}
 temp = list.files("./data/", full.names = TRUE) 
 ##obtaining file names and path
 
@@ -41,6 +41,50 @@ study_data = bind_rows(study_df) %>%
 ```
 
 ```{r}
-
+study_data %>% 
+  mutate(study_id = as.character(study_id)) %>% 
+  group_by(arm, study_id) %>%
+  ggplot(aes(x = week, y = value, type = study_id, color = arm)) +
+  geom_line() +
+  ##Creating speghetti plot
+  labs(y = "value", caption = "observations for each subject over time")
 ```
 
+##Problem 2
+
+```{r}
+homicides = read_csv("https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv")
+```
+
+Describe the raw data. 
+
+```{r}
+homicides = homicides %>% 
+  unite("city_state", c("city", "state"), sep = ", ", remove = TRUE)
+```
+
+```{r}
+total_homicides = homicides %>% 
+  group_by(city_state) %>% 
+  summarize(total_homicides = n())
+```
+
+```{r}
+unsolved_homicides = homicides %>% 
+  filter(disposition %in% c("Open/No arrest", "closed without arrest")) %>%
+  group_by(city_state) %>% 
+  summarize(unsolved_homicides = n())
+```
+
+summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
+
+```{r}
+total_cases = 
+  left_join(unsolved_homicides, total_homicides, by = "city_state")
+```
+
+For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of prop.test as an R object, apply the broom::tidy to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.
+
+Now run prop.test for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. Do this within a “tidy” pipeline, making use of purrr::map, purrr::map2, list columns and unnest as necessary to create a tidy dataframe with estimated proportions and CIs for each city.
+
+Create a plot that shows the estimates and CIs for each city – check out geom_errorbar for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.
