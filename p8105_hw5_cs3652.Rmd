@@ -22,9 +22,4 @@ myfiles = lapply(temp, read.delim)
 dplyr::bind_rows(myfiles)
 ```
 
-```{r}
-study_data = myfiles %>%
-  study_data$arm <- 
-```
-
 
