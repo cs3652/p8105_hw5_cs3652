@@ -83,8 +83,56 @@ total_cases =
   left_join(unsolved_homicides, total_homicides, by = "city_state")
 ```
 
+```{r}
+prop_unsolved = function(df) {
+  # uses unsolved and total columns in data set
+  ci_unsolved = prop.test(df$unsolved_homicides, df$total_homicides)
+  
+  # putting estimate and bounds in a nice data set
+  broom::tidy(ci_unsolved) %>% 
+    select(estimate, conf.low, conf.high)
+}
+```
+
 For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of prop.test as an R object, apply the broom::tidy to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.
 
 Now run prop.test for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. Do this within a “tidy” pipeline, making use of purrr::map, purrr::map2, list columns and unnest as necessary to create a tidy dataframe with estimated proportions and CIs for each city.
 
+```{r}
+total_cases %>% 
+  filter(city_state == "Baltimore, MD") %>% 
+  prop_unsolved() %>% 
+  mutate(estimate = round(estimate, 2), 
+         conf.low = round(conf.low, 2), 
+         conf.high = round(conf.high, 2)) %>% 
+  rename("lower bound" = conf.low, 
+         "upper bound" = conf.high) %>% 
+  knitr::kable()
+```
+
 Create a plot that shows the estimates and CIs for each city – check out geom_errorbar for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.
+
+```{r}
+city_nest = nest(total_cases, unsolved_homicides:total_homicides)
+# prop_unsolved(city_nest$data[[1]])
+# map(city_nest$data, prop_unsolved)
+# iterating prop_unsolved over list column 'data' for each city
+unsolved_ci = city_nest %>% 
+  mutate(prop_unsolved = map(data, prop_unsolved)) %>% 
+  unnest() %>% 
+  rename(conf_low = conf.low, 
+         conf_high = conf.high)
+# making a plot
+unsolved_ci %>% 
+  mutate(city_state = fct_reorder(city_state, estimate)) %>% 
+  ggplot(aes(x = city_state, y = estimate)) + 
+  geom_point(color = "#A35E60") + 
+  geom_errorbar(aes(ymin = conf_low, ymax = conf_high)) + 
+  coord_flip() + 
+  labs(title = "Proportion of unsolved cases in 50 major US cities", 
+       y = "Proportion of unsolved cases", 
+       x = "City", 
+       caption = "Error bars represent 95% confidence interval") + 
+  theme_classic()
+```
+
