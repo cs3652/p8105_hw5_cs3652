@@ -108,8 +108,6 @@ prop_unsolved = function(df) {
 }
 ```
 
-save the output of prop.test as an R object
-pull the estimated proportion and confidence intervals from the resulting tidy dataframe
 
 ```{r}
 total_cases %>% 
@@ -124,8 +122,6 @@ total_cases %>%
 ```
 
 The above table shows the proportion of homicides that go unsolved in baltimore with the upper and lower bounds of the confidence interval. 
-
-Do this within a “tidy” pipeline, making use of purrr::map, purrr::map2, list columns and unnest as necessary to create a tidy dataframe with estimated proportions and CIs for each city.
 
 ```{r}
 city_nest = nest(total_cases, unsolved_homicides:total_homicides)
